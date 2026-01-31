@@ -38,10 +38,19 @@
           <span id="timer-display" class="timer-display">5:00</span>
         </div>
         <div class="glass timer-stepper-wrap" id="timer-stepper-wrap">
-          <label>Minutes: <span id="timer-minutes">5</span></label>
-          <div class="stepper-buttons">
-            <button type="button" id="timer-minus" aria-label="Decrease minutes">−</button>
-            <button type="button" id="timer-plus" aria-label="Increase minutes">+</button>
+          <div class="timer-stepper-row">
+            <label>Minutes: <span id="timer-minutes">5</span></label>
+            <div class="stepper-buttons">
+              <button type="button" id="timer-min-minus" aria-label="Decrease minutes">−</button>
+              <button type="button" id="timer-min-plus" aria-label="Increase minutes">+</button>
+            </div>
+          </div>
+          <div class="timer-stepper-row">
+            <label>Seconds: <span id="timer-seconds">0</span></label>
+            <div class="stepper-buttons">
+              <button type="button" id="timer-sec-minus" aria-label="Decrease seconds">−</button>
+              <button type="button" id="timer-sec-plus" aria-label="Increase seconds">+</button>
+            </div>
           </div>
         </div>
         <div class="timer-buttons">

@@ -193,9 +193,17 @@ struct AlarmTab: View {
 // MARK: - Timer Tab (circular countdown ring)
 
 struct TimerTab: View {
+    @State private var setMinutes: Int = 5
+    @State private var setSeconds: Int = 0
     @State private var totalSeconds: Int = 300
     @State private var remainingSeconds: Int = 300
     @State private var isRunning = false
+
+    private func applyDuration() {
+        let total = setMinutes * 60 + setSeconds
+        totalSeconds = max(1, total)
+        if !isRunning { remainingSeconds = totalSeconds }
+    }
 
     var body: some View {
         VStack(spacing: 32) {
@@ -214,10 +222,16 @@ struct TimerTab: View {
             }
 
             if !isRunning {
-                Stepper("Minutes: \(totalSeconds / 60)", value: Binding(
-                    get: { totalSeconds / 60 },
-                    set: { totalSeconds = $0 * 60; remainingSeconds = totalSeconds }
-                ), in: 1...120)
+                VStack(spacing: 12) {
+                    Stepper("Minutes: \(setMinutes)", value: Binding(
+                        get: { setMinutes },
+                        set: { setMinutes = max(0, min(120, $0)); applyDuration() }
+                    ), in: 0...120)
+                    Stepper("Seconds: \(setSeconds)", value: Binding(
+                        get: { setSeconds },
+                        set: { setSeconds = max(0, min(59, $0)); applyDuration() }
+                    ), in: 0...59)
+                }
                 .glass()
             }
 
@@ -230,6 +244,7 @@ struct TimerTab: View {
                     .glass()
                     Button("Reset") {
                         isRunning = false
+                        applyDuration()
                         remainingSeconds = totalSeconds
                     }
                     .buttonStyle(.bordered)
@@ -242,6 +257,7 @@ struct TimerTab: View {
                     .glass()
                     if remainingSeconds != totalSeconds {
                         Button("Reset") {
+                            applyDuration()
                             remainingSeconds = totalSeconds
                         }
                         .buttonStyle(.bordered)

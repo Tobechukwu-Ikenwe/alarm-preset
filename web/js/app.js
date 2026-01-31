@@ -1,51 +1,90 @@
 /**
- * Intelligent Alarm — cross-platform (Windows + Mac)
- * Data model: weekday preset (Mon–Fri), weekend preset (Sat–Sun).
- * Uses Web Notifications API; persistence via localStorage.
- * No external libraries.
+ * Atmospheric Clock — Alarm, Timer, Stopwatch (matches SwiftUI)
+ * TabView, current time header, single alarm, circular timer, lap stopwatch.
+ * Time-of-day gradient: Night / Sunrise / Day / Dusk.
  */
 
 (function () {
   'use strict';
 
-  const STORAGE_WEEKDAY = 'AlarmPreset.weekday';
-  const STORAGE_WEEKEND = 'AlarmPreset.weekend';
-  const CHECK_INTERVAL_MS = 30 * 1000; // check every 30 seconds
-  const NOTIFY_DEBOUNCE_MS = 2 * 60 * 1000; // don't re-notify within 2 minutes
+  const STORAGE_ALARM = 'AtmosphericClock.alarm';
+  const CHECK_INTERVAL_MS = 30 * 1000;
+  const NOTIFY_DEBOUNCE_MS = 2 * 60 * 1000;
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 100;
 
-  const AlarmType = { WEEKDAY: 'weekday', WEEKEND: 'weekend' };
+  function $(id) { return document.getElementById(id); }
 
-  function isDateInWeekend(date) {
-    const day = date.getDay(); // 0 = Sun, 6 = Sat
-    return day === 0 || day === 6;
+  function formatCurrentTime(date) {
+    const h = date.getHours();
+    const m = date.getMinutes();
+    const am = h < 12;
+    const h12 = h % 12 || 12;
+    return h12 + ':' + String(m).padStart(2, '0') + ' ' + (am ? 'AM' : 'PM');
   }
 
-  function getPreset(key, defaultTime) {
+  function formatTimer(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  function formatStopwatch(ms) {
+    const totalMs = Math.floor(ms);
+    const m = Math.floor(totalMs / 60000);
+    const s = Math.floor((totalMs % 60000) / 1000);
+    const msPart = totalMs % 1000;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(msPart).padStart(3, '0');
+  }
+
+  // ——— Tab switching ———
+  function switchTab(tabId) {
+    ['alarm', 'timer', 'stopwatch'].forEach(function (id) {
+      const panel = $('panel-' + id);
+      const btn = document.querySelector('.tab-btn[data-tab="' + id + '"]');
+      if (panel) panel.classList.toggle('hidden', id !== tabId);
+      if (btn) {
+        btn.classList.toggle('active', id === tabId);
+        btn.setAttribute('aria-selected', id === tabId);
+      }
+    });
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      switchTab(btn.getAttribute('data-tab'));
+    });
+  });
+
+  // ——— Current time header (updates every second) ———
+  function updateCurrentTime() {
+    const el = $('current-time');
+    if (el) {
+      el.textContent = formatCurrentTime(new Date());
+      el.setAttribute('datetime', new Date().toISOString());
+    }
+  }
+  updateCurrentTime();
+  setInterval(updateCurrentTime, 1000);
+
+  // ——— Alarm: single preset, UNCalendarNotificationTrigger-style (daily at time) ———
+  function getAlarmPreset() {
     try {
-      const raw = localStorage.getItem(key);
+      const raw = localStorage.getItem(STORAGE_ALARM);
       if (raw) {
         const data = JSON.parse(raw);
-        return {
-          time: data.time || defaultTime,
-          isEnabled: data.isEnabled !== false,
-          type: data.type
-        };
+        return { time: data.time || '07:00', isEnabled: !!data.isEnabled };
       }
     } catch (_) {}
-    return { time: defaultTime, isEnabled: true, type: key === STORAGE_WEEKDAY ? AlarmType.WEEKDAY : AlarmType.WEEKEND };
+    return { time: '07:00', isEnabled: false };
   }
 
-  function savePreset(key, preset) {
+  function saveAlarmPreset(preset) {
     try {
-      localStorage.setItem(key, JSON.stringify({
-        time: preset.time,
-        isEnabled: preset.isEnabled,
-        type: preset.type
-      }));
+      localStorage.setItem(STORAGE_ALARM, JSON.stringify(preset));
     } catch (_) {}
   }
 
-  function requestPermission() {
+  function requestNotificationPermission() {
     if (!('Notification' in window)) return Promise.resolve(false);
     if (Notification.permission === 'granted') return Promise.resolve(true);
     if (Notification.permission === 'denied') return Promise.resolve(false);
@@ -59,147 +98,250 @@
     } catch (_) {}
   }
 
-  function timeStringToMinutes(str) {
-    const [h, m] = (str || '00:00').split(':').map(Number);
-    return (h || 0) * 60 + (m || 0);
-  }
+  var alarmState = getAlarmPreset();
+  var lastAlarmNotified = 0;
 
-  function nowMinutes() {
-    const d = new Date();
-    return d.getHours() * 60 + d.getMinutes();
-  }
-
-  function checkAndNotify(weekdayPreset, weekendPreset, lastNotified) {
+  function checkAlarm() {
+    if (!alarmState.isEnabled) return;
     const now = new Date();
-    const weekend = isDateInWeekend(now);
-    const nowM = nowMinutes();
-
-    const preset = weekend ? weekendPreset : weekdayPreset;
-    if (!preset.isEnabled) return lastNotified;
-
-    const [h, m] = (preset.time || '07:00').split(':').map(Number);
+    const nowM = now.getHours() * 60 + now.getMinutes();
+    const [h, m] = (alarmState.time || '07:00').split(':').map(Number);
     const targetM = (h || 0) * 60 + (m || 0);
-
-    if (Math.abs(nowM - targetM) > 1) return lastNotified; // within 1 minute
-    if (Date.now() - lastNotified < NOTIFY_DEBOUNCE_MS) return lastNotified;
-
-    const title = weekend ? 'Weekend Alarm' : 'Weekday Alarm';
-    const body = weekend ? 'Good morning!' : 'Time to get up!';
-    showNotification(title, body);
-    return Date.now();
+    if (Math.abs(nowM - targetM) > 1) return;
+    if (Date.now() - lastAlarmNotified < NOTIFY_DEBOUNCE_MS) return;
+    showNotification('Alarm', 'Time to get up!');
+    lastAlarmNotified = Date.now();
   }
 
-  function runChecker(state) {
-    state.lastNotified = checkAndNotify(
-      state.weekdayPreset,
-      state.weekendPreset,
-      state.lastNotified
-    );
+  var timeAlarm = $('time-alarm');
+  var enabledAlarm = $('enabled-alarm');
+  var permissionHint = $('permission-hint');
+
+  if (timeAlarm) {
+    timeAlarm.value = alarmState.time;
+    timeAlarm.addEventListener('change', function () {
+      alarmState.time = timeAlarm.value;
+      saveAlarmPreset(alarmState);
+    });
+  }
+  if (enabledAlarm) {
+    enabledAlarm.checked = alarmState.isEnabled;
+    enabledAlarm.addEventListener('change', function () {
+      alarmState.isEnabled = enabledAlarm.checked;
+      saveAlarmPreset(alarmState);
+    });
   }
 
-  function updateActiveCards() {
-    const weekend = isDateInWeekend(new Date());
-    const cardWeekday = document.getElementById('card-weekday');
-    const cardWeekend = document.getElementById('card-weekend');
-    if (cardWeekday) {
-      cardWeekday.classList.remove('active-weekday', 'active-weekend');
-      if (!weekend) cardWeekday.classList.add('active-weekday');
+  requestNotificationPermission().then(function (granted) {
+    if (!granted && permissionHint) permissionHint.classList.remove('hidden');
+  });
+  setInterval(checkAlarm, CHECK_INTERVAL_MS);
+  checkAlarm();
+
+  // ——— Timer: circular countdown ring ———
+  var totalSeconds = 300;
+  var remainingSeconds = 300;
+  var timerRunning = false;
+  var timerIntervalId = null;
+
+  function updateTimerDisplay() {
+    var display = $('timer-display');
+    if (display) display.textContent = formatTimer(remainingSeconds);
+    var progress = $('timer-ring-progress');
+    if (progress) {
+      var ratio = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
+      progress.setAttribute('stroke-dashoffset', RING_CIRCUMFERENCE * (1 - ratio));
     }
-    if (cardWeekend) {
-      cardWeekend.classList.remove('active-weekday', 'active-weekend');
-      if (weekend) cardWeekend.classList.add('active-weekend');
+  }
+
+  function tickTimer() {
+    if (!timerRunning || remainingSeconds <= 0) return;
+    remainingSeconds -= 1;
+    updateTimerDisplay();
+    if (remainingSeconds <= 0) {
+      timerRunning = false;
+      if (timerIntervalId) clearInterval(timerIntervalId);
+      timerIntervalId = null;
+      if (startBtn) { startBtn.textContent = 'Start'; startBtn.classList.remove('hidden'); }
+      if (pauseBtn) pauseBtn.classList.add('hidden');
+      if (resetBtn) resetBtn.classList.remove('hidden');
+      if (stepperWrap) stepperWrap.classList.remove('hidden');
     }
   }
 
-  /** Time-of-day theme: 0 = night (navy/black), 1 = day (light blue). Smooth transition. */
-  function timeOfDayBrightness(date) {
-    const hour = date.getHours() + date.getMinutes() / 60;
-    const t = (hour / 24) * 2 * Math.PI - Math.PI / 2;
-    return Math.max(0, Math.min(1, (Math.sin(t) + 1) / 2));
+  var minutesEl = $('timer-minutes');
+  var secondsEl = $('timer-seconds');
+  var stepperWrap = $('timer-stepper-wrap');
+  var minMinusBtn = $('timer-min-minus');
+  var minPlusBtn = $('timer-min-plus');
+  var secMinusBtn = $('timer-sec-minus');
+  var secPlusBtn = $('timer-sec-plus');
+  var startBtn = $('timer-start');
+  var pauseBtn = $('timer-pause');
+  var resetBtn = $('timer-reset');
+
+  function setTimerDuration(min, sec) {
+    min = Math.max(0, Math.min(120, min));
+    sec = Math.max(0, Math.min(59, sec));
+    totalSeconds = Math.max(1, min * 60 + sec);
+    if (!timerRunning) remainingSeconds = totalSeconds;
+    if (minutesEl) minutesEl.textContent = min;
+    if (secondsEl) secondsEl.textContent = sec;
+    updateTimerDisplay();
+  }
+
+  function getCurrentMinSec() {
+    var m = Math.floor(remainingSeconds / 60);
+    var s = remainingSeconds % 60;
+    return { min: m, sec: s };
+  }
+
+  if (minMinusBtn) minMinusBtn.addEventListener('click', function () {
+    if (timerRunning) return;
+    var cur = getCurrentMinSec();
+    setTimerDuration(cur.min - 1, cur.sec);
+  });
+  if (minPlusBtn) minPlusBtn.addEventListener('click', function () {
+    if (timerRunning) return;
+    var cur = getCurrentMinSec();
+    setTimerDuration(cur.min + 1, cur.sec);
+  });
+  if (secMinusBtn) secMinusBtn.addEventListener('click', function () {
+    if (timerRunning) return;
+    var cur = getCurrentMinSec();
+    setTimerDuration(cur.min, cur.sec - 1);
+  });
+  if (secPlusBtn) secPlusBtn.addEventListener('click', function () {
+    if (timerRunning) return;
+    var cur = getCurrentMinSec();
+    setTimerDuration(cur.min, cur.sec + 1);
+  });
+
+  if (startBtn) {
+    startBtn.addEventListener('click', function () {
+      if (timerRunning) return;
+      if (remainingSeconds <= 0) remainingSeconds = totalSeconds;
+      timerRunning = true;
+      startBtn.classList.add('hidden');
+      if (pauseBtn) pauseBtn.classList.remove('hidden');
+      if (resetBtn) resetBtn.classList.remove('hidden');
+      if (stepperWrap) stepperWrap.classList.add('hidden');
+      timerIntervalId = setInterval(tickTimer, 1000);
+    });
+  }
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', function () {
+      timerRunning = false;
+      if (timerIntervalId) clearInterval(timerIntervalId);
+      timerIntervalId = null;
+      if (startBtn) { startBtn.textContent = 'Resume'; startBtn.classList.remove('hidden'); }
+      pauseBtn.classList.add('hidden');
+    });
+  }
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      timerRunning = false;
+      if (timerIntervalId) clearInterval(timerIntervalId);
+      timerIntervalId = null;
+      remainingSeconds = totalSeconds;
+      if (startBtn) { startBtn.textContent = 'Start'; startBtn.classList.remove('hidden'); }
+      if (pauseBtn) pauseBtn.classList.add('hidden');
+      resetBtn.classList.add('hidden');
+      if (stepperWrap) stepperWrap.classList.remove('hidden');
+      updateTimerDisplay();
+    });
+  }
+
+  setTimerDuration(5, 0);
+
+  // ——— Stopwatch: lap timer with milliseconds (Date() difference to avoid drift) ———
+  var stopwatchStartDate = null;
+  var stopwatchLapStart = null;
+  var laps = [];
+
+  function renderStopwatch() {
+    var display = $('stopwatch-display');
+    if (!display) return;
+    if (!stopwatchStartDate) {
+      display.textContent = '00:00.000';
+      return;
+    }
+    var elapsed = new Date() - stopwatchStartDate;
+    display.textContent = formatStopwatch(elapsed);
+  }
+
+  var stopwatchStartBtn = $('stopwatch-start');
+  var stopwatchLapBtn = $('stopwatch-lap');
+  var stopwatchStopBtn = $('stopwatch-stop');
+  var lapsList = $('stopwatch-laps');
+
+  if (stopwatchStartBtn) {
+    stopwatchStartBtn.addEventListener('click', function () {
+      stopwatchStartDate = new Date();
+      stopwatchLapStart = stopwatchStartDate;
+      laps = [];
+      if (lapsList) lapsList.innerHTML = '';
+      stopwatchStartBtn.classList.add('hidden');
+      stopwatchLapBtn.classList.remove('hidden');
+      stopwatchStopBtn.classList.remove('hidden');
+    });
+  }
+  if (stopwatchLapBtn) {
+    stopwatchLapBtn.addEventListener('click', function () {
+      if (!stopwatchStartDate || !stopwatchLapStart) return;
+      var lapMs = new Date() - stopwatchLapStart;
+      laps.push(lapMs);
+      stopwatchLapStart = new Date();
+      var li = document.createElement('li');
+      li.textContent = 'Lap ' + laps.length + ' — ' + formatStopwatch(lapMs);
+      if (lapsList) lapsList.appendChild(li);
+    });
+  }
+  if (stopwatchStopBtn) {
+    stopwatchStopBtn.addEventListener('click', function () {
+      stopwatchStartDate = null;
+      stopwatchLapStart = null;
+      stopwatchStartBtn.classList.remove('hidden');
+      stopwatchLapBtn.classList.add('hidden');
+      stopwatchStopBtn.classList.add('hidden');
+    });
+  }
+
+  setInterval(renderStopwatch, 20);
+
+  // ——— Time-of-day theme (Night / Sunrise / Day / Dusk — matches Swift) ———
+  function hourFraction(date) {
+    return date.getHours() + date.getMinutes() / 60;
   }
 
   function applyTimeOfDayTheme() {
-    const bright = timeOfDayBrightness(new Date());
-    const r = Math.round((0.03 + (0.85 - 0.03) * bright) * 255);
-    const g = Math.round((0.05 + (0.92 - 0.05) * bright) * 255);
-    const bl = Math.round((0.12 + (1 - 0.12) * bright) * 255);
-    const r2 = Math.round((0.08 + (1 - 0.08) * bright) * 255);
-    const g2 = Math.round((0.1 + (1 - 0.1) * bright) * 255);
-    const b2 = Math.round((0.18 + (1 - 0.18) * bright) * 255);
+    var hour = hourFraction(new Date());
+    var r, g, b, r2, g2, b2;
+    if (hour >= 22 || hour < 5) {
+      r = 0; g = 0; b = 51;
+      r2 = 20; g2 = 26; b2 = 46;
+    } else if (hour >= 5 && hour < 9) {
+      r = 255; g = 182; b = 193;
+      r2 = 173; g2 = 216; b2 = 255;
+    } else if (hour >= 9 && hour < 17) {
+      r = 135; g = 206; b = 250;
+      r2 = 255; g2 = 255; b2 = 255;
+    } else {
+      r = 75; g = 0; b = 130;
+      r2 = 255; g2 = 128; b2 = 0;
+    }
     document.documentElement.style.setProperty('--theme-bg-r', r);
     document.documentElement.style.setProperty('--theme-bg-g', g);
-    document.documentElement.style.setProperty('--theme-bg-b', bl);
+    document.documentElement.style.setProperty('--theme-bg-b', b);
     document.documentElement.style.setProperty('--theme-surface-r', r2);
     document.documentElement.style.setProperty('--theme-surface-g', g2);
     document.documentElement.style.setProperty('--theme-surface-b', b2);
-    document.documentElement.style.setProperty('--theme-text', bright > 0.5 ? '#1e293b' : '#f1f5f9');
-    document.documentElement.style.setProperty('--theme-text-muted', bright > 0.5 ? '#64748b' : '#94a3b8');
-    document.documentElement.style.setProperty('--theme-border', bright > 0.5 ? '#e2e8f0' : '#334155');
+    var bright = (hour >= 6 && hour < 18);
+    document.documentElement.style.setProperty('--theme-text', bright ? '#1e293b' : '#f1f5f9');
+    document.documentElement.style.setProperty('--theme-text-muted', bright ? '#64748b' : '#94a3b8');
+    document.documentElement.style.setProperty('--theme-border', bright ? '#e2e8f0' : '#334155');
   }
 
-  const state = {
-    weekdayPreset: getPreset(STORAGE_WEEKDAY, '07:00'),
-    weekendPreset: getPreset(STORAGE_WEEKEND, '09:00'),
-    lastNotified: 0
-  };
-
-  function persistAndSchedule() {
-    savePreset(STORAGE_WEEKDAY, state.weekdayPreset);
-    savePreset(STORAGE_WEEKEND, state.weekendPreset);
-  }
-
-  function bindUi() {
-    const timeWeekday = document.getElementById('time-weekday');
-    const timeWeekend = document.getElementById('time-weekend');
-    const enabledWeekday = document.getElementById('enabled-weekday');
-    const enabledWeekend = document.getElementById('enabled-weekend');
-    const permissionHint = document.getElementById('permission-hint');
-
-    if (timeWeekday) {
-      timeWeekday.value = state.weekdayPreset.time;
-      timeWeekday.addEventListener('change', function () {
-        state.weekdayPreset.time = timeWeekday.value;
-        persistAndSchedule();
-      });
-    }
-    if (timeWeekend) {
-      timeWeekend.value = state.weekendPreset.time;
-      timeWeekend.addEventListener('change', function () {
-        state.weekendPreset.time = timeWeekend.value;
-        persistAndSchedule();
-      });
-    }
-    if (enabledWeekday) {
-      enabledWeekday.checked = state.weekdayPreset.isEnabled;
-      enabledWeekday.addEventListener('change', function () {
-        state.weekdayPreset.isEnabled = enabledWeekday.checked;
-        persistAndSchedule();
-      });
-    }
-    if (enabledWeekend) {
-      enabledWeekend.checked = state.weekendPreset.isEnabled;
-      enabledWeekend.addEventListener('change', function () {
-        state.weekendPreset.isEnabled = enabledWeekend.checked;
-        persistAndSchedule();
-      });
-    }
-
-    requestPermission().then(function (granted) {
-      if (!granted && permissionHint) permissionHint.classList.remove('hidden');
-    });
-
-    applyTimeOfDayTheme();
-    setInterval(applyTimeOfDayTheme, 60 * 1000);
-    updateActiveCards();
-    setInterval(updateActiveCards, 60 * 1000);
-
-    setInterval(function () { runChecker(state); }, CHECK_INTERVAL_MS);
-    runChecker(state);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindUi);
-  } else {
-    bindUi();
-  }
+  applyTimeOfDayTheme();
+  setInterval(applyTimeOfDayTheme, 60 * 1000);
 })();

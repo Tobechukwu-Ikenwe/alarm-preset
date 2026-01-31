@@ -1,21 +1,12 @@
-/* Intelligent Alarm — cross-platform (Windows + Mac) */
-/* Time-of-day theme: JS sets --theme-bg-*, --theme-surface-*, --theme-text, etc. (night → day) */
+/* Atmospheric Clock — Alarm, Timer, Stopwatch (matches SwiftUI) */
+/* Time-of-day gradient: JS sets --theme-* (Night / Sunrise / Day / Dusk) */
 
 :root {
-  --weekday: #2563eb;
-  --weekday-bg: rgba(37, 99, 235, 0.12);
-  --weekend: #ea580c;
-  --weekend-bg: rgba(234, 88, 12, 0.12);
-  --text: #1e293b;
-  --text-muted: #64748b;
-  --surface: #ffffff;
-  --border: #e2e8f0;
   --radius: 16px;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-  /* Time-of-day defaults (mid-morning) until JS runs; values 0-255 for rgb() */
-  --theme-bg-r: 217;
-  --theme-bg-g: 235;
-  --theme-bg-b: 255;
+  --theme-bg-r: 135;
+  --theme-bg-g: 206;
+  --theme-bg-b: 250;
   --theme-surface-r: 255;
   --theme-surface-g: 255;
   --theme-surface-b: 255;
@@ -34,8 +25,8 @@ body {
   background: rgb(var(--theme-bg-r), var(--theme-bg-g), var(--theme-bg-b));
   color: var(--theme-text);
   min-height: 100vh;
-  padding: 1.5rem;
-  transition: background-color 1s ease, color 0.5s ease;
+  padding: 1rem 1.5rem 5rem;
+  transition: background-color 2s ease, color 0.5s ease;
 }
 
 .app {
@@ -43,78 +34,52 @@ body {
   margin: 0 auto;
 }
 
-.header {
+/* Current time at top center — bold, monospaced (Swift CurrentTimeHeader) */
+.current-time-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.header h1 {
-  font-size: 1.75rem;
+.current-time {
+  font-size: 2.75rem;
   font-weight: 700;
-  margin: 0 0 0.25rem 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  display: block;
   color: var(--theme-text);
 }
 
-.subtitle {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: var(--theme-text-muted);
+/* Glassmorphism: semi-transparent blur so gradient shows through */
+.glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.master {
+/* Tab content */
+.tab-content {
+  min-height: 280px;
+}
+
+.tab-panel {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.25rem;
 }
 
+.tab-panel.hidden {
+  display: none;
+}
+
+/* Alarm panel */
 .card {
-  background: rgb(var(--theme-surface-r), var(--theme-surface-g), var(--theme-surface-b));
-  border-radius: var(--radius);
-  border: 2px solid var(--theme-border);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  transition: border-color 0.5s ease, box-shadow 0.2s, background-color 1s ease;
-}
-
-.card-weekday .card-header {
-  color: var(--weekday);
-}
-
-.card-weekend .card-header {
-  color: var(--weekend);
-}
-
-.card.active-weekday {
-  border-color: var(--weekday);
-  background: var(--weekday-bg);
-  box-shadow: 0 0 0 1px var(--weekday);
-}
-
-.card.active-weekend {
-  border-color: var(--weekend);
-  background: var(--weekend-bg);
-  box-shadow: 0 0 0 1px var(--weekend);
-}
-
-.card-header {
-  padding: 1rem 1.25rem 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.card-icon {
-  font-size: 1.25rem;
-}
-
-.card-header h2 {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.card-body {
-  padding: 0.5rem 1.25rem 1.25rem;
+  width: 100%;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -128,23 +93,19 @@ body {
 
 .time-input {
   width: 100%;
-  max-width: 10rem;
+  max-width: 12rem;
   padding: 0.625rem 0.75rem;
   font-size: 1.25rem;
-  font-family: inherit;
+  font-family: ui-monospace, monospace;
   border: 2px solid var(--theme-border);
   border-radius: 10px;
   color: var(--theme-text);
-  background: rgb(var(--theme-surface-r), var(--theme-surface-g), var(--theme-surface-b));
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .time-input:focus {
   outline: none;
-  border-color: var(--weekday);
-}
-
-.card-weekend .time-input:focus {
-  border-color: var(--weekend);
+  border-color: var(--theme-text);
 }
 
 .toggle-label {
@@ -159,12 +120,7 @@ body {
 .toggle {
   width: 2.75rem;
   height: 1.5rem;
-  accent-color: var(--weekday);
   cursor: pointer;
-}
-
-.card-weekend .toggle {
-  accent-color: var(--weekend);
 }
 
 .toggle-text {
@@ -175,11 +131,191 @@ body {
   text-align: center;
   font-size: 0.875rem;
   color: var(--theme-text-muted);
-  margin: 0.5rem 0 0;
+  margin: 0;
 }
 
 .permission-hint.hidden {
   display: none;
 }
 
-/* Time-of-day theme controls colors; no separate dark-mode override so day/night gradient is consistent */
+/* Timer panel: circular countdown ring */
+.timer-ring-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+.timer-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+.timer-ring-progress {
+  stroke: currentColor;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.timer-display {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+}
+
+.timer-stepper-wrap {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 280px;
+}
+
+.timer-stepper-wrap.hidden {
+  display: none;
+}
+
+.timer-stepper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.timer-stepper-row label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--theme-text);
+}
+
+.stepper-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stepper-buttons button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  border: 2px solid var(--theme-border);
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--theme-text);
+}
+
+.stepper-buttons button:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.timer-buttons,
+.stopwatch-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--theme-text);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.btn-primary {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.btn.hidden {
+  display: none;
+}
+
+/* Stopwatch panel */
+.stopwatch-display {
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.05em;
+  color: var(--theme-text);
+}
+
+.stopwatch-laps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 320px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9375rem;
+  color: var(--theme-text-muted);
+}
+
+.stopwatch-laps li {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Tab bar at bottom (Swift TabView) */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--theme-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn.active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.tab-icon {
+  font-size: 1.25rem;
+}

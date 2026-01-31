@@ -2,13 +2,11 @@
 
 A **Clock** app that imitates the modern Clock app on Android and iOS. It includes **Alarm**, **Timer**, and **Stopwatch** in one place, with a **time-of-day gradient** that changes the background based on the current time (night, sunrise, day, dusk).
 
-<img width="1613" height="836" alt="Screenshot 2026-01-30 235525" src="https://github.com/user-attachments/assets/01ee23d2-2acf-4aa0-b197-a1146dde8395" />
-
-
+![Clock app — Timer screen at night](assets/screenshot.png)
 **What it does:**
 
 - **Alarm** — Set one alarm time and turn it on or off. The app asks for notification permission on first use and notifies you at the set time (daily).
-- **Timer** — A circular countdown: choose minutes (1–120), tap **Start**, then **Pause** or **Reset**. The ring shows how much time is left.
+- **Timer** — A circular countdown: choose **minutes** (0–120) and **seconds** (0–59), tap **Start**, then **Pause** or **Reset**. The ring shows how much time is left.
 - **Stopwatch** — A lap timer with milliseconds. Tap **Start** to run, **Lap** to record laps without stopping, **Stop** to stop. Elapsed time is based on the system clock so it stays accurate.
 - **Time gradient** — The background updates by time of day: **Night** (10PM–5AM) is black to deep navy; **Sunrise** (6AM–9AM) is soft pink to light blue; **Day** (10AM–5PM) is sky blue to white; **Dusk** (6PM–9PM) is twilight purple to orange. Transitions are smooth (about 2 seconds).
 - **Current time** — Shown at the top center in every tab (bold, monospaced).
