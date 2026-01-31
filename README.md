@@ -1,53 +1,51 @@
 # Intelligent Weekend/Weekday Alarm
 
-A single-file SwiftUI app that lets you set different alarm times for **weekdays** (Mon–Fri) and **weekends** (Sat–Sun), with native notifications and no external libraries.
+Set different alarm times for **weekdays** (Mon–Fri) and **weekends** (Sat–Sun). Cross-platform: **web app** for Windows and Mac, **SwiftUI app** for Mac and iPhone.
 
 ## File structure
 
 ```
 AlarmPreset/
-├── IntelligentAlarmApp.swift   # Complete app (data model, AlarmManager, UI, @main)
+├── web/                    # Cross-platform (Windows + Mac)
+│   ├── index.html
+│   ├── css/styles.css
+│   └── js/app.js
+├── IntelligentAlarmApp.swift   # Mac / iOS (Xcode)
+├── LICENSE
 └── README.md
 ```
 
-Everything lives in **one Swift file**: data model, notification manager, UI, and app entry point.
+## Cross-platform: Web app (Windows + Mac)
 
-## Architecture (what’s in the file)
+Runs in any modern browser on **Windows** and **Mac**. No install required.
 
-| Component | Description |
-|-----------|-------------|
-| **AlarmPreset** | Struct with `time`, `isEnabled`, and `type` (Weekday/Weekend). Codable for UserDefaults. |
-| **AlarmType** | Enum: `.weekday`, `.weekend`. |
-| **AlarmManager** | Uses `UNUserNotificationCenter.current()`. Requests permission on start, `scheduleAlarms()` uses `DateComponents` to repeat: weekdays 2–6 (Mon–Fri), weekend 7 and 1 (Sat–Sun). |
-| **Active highlight** | `Calendar.current.isDateInWeekend(Date())` decides which card is “active”: weekday card highlighted on weekdays (blue), weekend card on weekends (orange). |
-| **UI** | `VStack` with two large `GroupBox` cards, `DatePicker` with `.datePickerStyle(.wheel)`, Blue theme for Weekday, Orange for Weekend. |
+1. Open **`web/index.html`** in your browser (double-click or drag into Chrome, Edge, Firefox, Safari), **or**
+2. Serve the `web` folder with a local server (e.g. `npx serve web` or your editor’s “Live Server”) so notifications work reliably.
+3. Allow notifications when prompted.
+4. Set weekday and weekend times; the card for “today” (weekday vs weekend) is highlighted (blue = weekday, orange = weekend). Alarms fire via browser notifications when the time matches.
 
-## On Mac (run on iPhone / simulator)
+**Tech:** HTML, CSS, JavaScript only. Web Notifications API, `localStorage` for persistence. No frameworks.
 
-1. Open **Xcode** and create a new **App** project (iOS).
-2. Replace or merge the default Swift files with the contents of **IntelligentAlarmApp.swift** (or add the file and set the app’s entry point to the `@main` struct in it).
-3. Build and run on a simulator or a connected iPhone.
-4. When the app starts, it will ask for notification permission; accept to get alarms.
+## Mac / iOS: Swift app
 
-You can copy this code into Xcode and ship it to your iPhone as usual.
+For **Xcode** (Mac simulator or iPhone):
 
-## On Windows (logic and learning)
+1. Create a new **App** project (iOS) in Xcode.
+2. Add **IntelligentAlarmApp.swift** (or replace default files and set the app’s entry point to the `@main` struct in it).
+3. Build and run. Grant notification permission to get alarms.
 
-You can’t run SwiftUI or Xcode on Windows, but you can:
+**Tech:** SwiftUI, Foundation, UserNotifications. No third-party dependencies.
 
-- **Read and edit** `IntelligentAlarmApp.swift` in your editor to understand the logic.
-- **Study** the data model, `AlarmManager`, and how `DateComponents` + `UNUserNotificationCenter` schedule repeating alarms.
-- **Reuse the ideas** (weekday vs weekend, permission flow, scheduling logic) in another platform or language.
+## Architecture
 
-## Native approach
+| Component        | Web (Windows + Mac)                         | Swift (Mac / iOS)                                      |
+|-----------------|---------------------------------------------|--------------------------------------------------------|
+| **Data model**  | Preset: `time`, `isEnabled`, type           | `AlarmPreset` struct, `AlarmType` enum                 |
+| **Persistence** | `localStorage`                              | `UserDefaults`                                         |
+| **Notifications** | Web Notifications API, timer check        | `UNUserNotificationCenter`, `DateComponents`           |
+| **Active highlight** | `isDateInWeekend(new Date())` on cards  | `Calendar.current.isDateInWeekend(Date())`             |
+| **Theme**       | Blue (weekday), Orange (weekend)            | Same                                                   |
 
-- **SwiftUI** and **Foundation** only.
-- **UserNotifications** for `UNUserNotificationCenter` (system framework).
-- No third-party dependencies.
+## License
 
-## Behavior summary
-
-- **Permission**: Requested when the app starts via `AlarmManager.requestPermission`.
-- **Scheduling**: `scheduleAlarms()` creates repeating calendar triggers: weekdays 2–6 for the weekday alarm, weekdays 1 and 7 for the weekend alarm.
-- **Persistence**: Presets are saved with `UserDefaults` and restored on launch.
-- **Active state**: The card that matches “today” (weekday vs weekend) is visually highlighted (blue for weekday, orange for weekend).
+Apache License 2.0 — see [LICENSE](LICENSE).

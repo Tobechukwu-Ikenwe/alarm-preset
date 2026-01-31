@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intelligent Alarm — Weekend / Weekday</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Intelligent Alarm</h1>
+      <p class="subtitle">Different times for weekdays and weekends</p>
+    </header>
+
+    <main class="main">
+      <section class="card card-weekday" id="card-weekday" aria-label="Weekday alarm">
+        <div class="card-header">
+          <span class="card-icon" aria-hidden="true">💼</span>
+          <h2>Weekday (Mon–Fri)</h2>
+        </div>
+        <div class="card-body">
+          <label class="time-label" for="time-weekday">Time</label>
+          <input type="time" id="time-weekday" class="time-input" value="07:00" aria-label="Weekday alarm time">
+          <label class="toggle-label">
+            <input type="checkbox" id="enabled-weekday" class="toggle" checked aria-label="Enable weekday alarm">
+            <span class="toggle-text">Enabled</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card card-weekend" id="card-weekend" aria-label="Weekend alarm">
+        <div class="card-header">
+          <span class="card-icon" aria-hidden="true">🛏</span>
+          <h2>Weekend (Sat–Sun)</h2>
+        </div>
+        <div class="card-body">
+          <label class="time-label" for="time-weekend">Time</label>
+          <input type="time" id="time-weekend" class="time-input" value="09:00" aria-label="Weekend alarm time">
+          <label class="toggle-label">
+            <input type="checkbox" id="enabled-weekend" class="toggle" checked aria-label="Enable weekend alarm">
+            <span class="toggle-text">Enabled</span>
+          </label>
+        </div>
+      </section>
+
+      <p class="permission-hint hidden" id="permission-hint">Enable notifications in your browser to get alarms.</p>
+    </main>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>
