@@ -2,6 +2,24 @@
 
 Set different alarm times for **weekdays** (Mon–Fri) and **weekends** (Sat–Sun). Cross-platform: **web app** for Windows and Mac, **SwiftUI app** for Mac and iPhone.
 
+## How to run the code
+
+**Web app (Windows or Mac):**
+
+1. Go to the `web` folder in this project.
+2. Double-click **`index.html`** to open it in your browser (or right-click → Open with → Chrome, Edge, Firefox, or Safari).
+3. When the page asks for notification permission, click **Allow**.
+4. Pick a time for **Weekday** and one for **Weekend**, and turn the toggles on. The app will notify you at those times on the right days.
+
+**Swift app (Mac only, for iPhone or simulator):**
+
+1. Open **Xcode** on your Mac and create a new **App** project (choose iOS).
+2. Add the file **`IntelligentAlarmApp.swift`** from this project into your Xcode project (or copy its contents into your app).
+3. Make sure your app’s entry point is the `@main` struct inside that file.
+4. Click **Run** (or press ⌘R). Choose a simulator or your iPhone. When the app asks for notification permission, tap **Allow**.
+
+That’s it. No extra installs for the web app; for the Swift app you need Xcode (and a Mac).
+
 ## File structure
 
 ```
