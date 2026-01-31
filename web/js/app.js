@@ -111,6 +111,32 @@
     }
   }
 
+  /** Time-of-day theme: 0 = night (navy/black), 1 = day (light blue). Smooth transition. */
+  function timeOfDayBrightness(date) {
+    const hour = date.getHours() + date.getMinutes() / 60;
+    const t = (hour / 24) * 2 * Math.PI - Math.PI / 2;
+    return Math.max(0, Math.min(1, (Math.sin(t) + 1) / 2));
+  }
+
+  function applyTimeOfDayTheme() {
+    const bright = timeOfDayBrightness(new Date());
+    const r = Math.round((0.03 + (0.85 - 0.03) * bright) * 255);
+    const g = Math.round((0.05 + (0.92 - 0.05) * bright) * 255);
+    const bl = Math.round((0.12 + (1 - 0.12) * bright) * 255);
+    const r2 = Math.round((0.08 + (1 - 0.08) * bright) * 255);
+    const g2 = Math.round((0.1 + (1 - 0.1) * bright) * 255);
+    const b2 = Math.round((0.18 + (1 - 0.18) * bright) * 255);
+    document.documentElement.style.setProperty('--theme-bg-r', r);
+    document.documentElement.style.setProperty('--theme-bg-g', g);
+    document.documentElement.style.setProperty('--theme-bg-b', bl);
+    document.documentElement.style.setProperty('--theme-surface-r', r2);
+    document.documentElement.style.setProperty('--theme-surface-g', g2);
+    document.documentElement.style.setProperty('--theme-surface-b', b2);
+    document.documentElement.style.setProperty('--theme-text', bright > 0.5 ? '#1e293b' : '#f1f5f9');
+    document.documentElement.style.setProperty('--theme-text-muted', bright > 0.5 ? '#64748b' : '#94a3b8');
+    document.documentElement.style.setProperty('--theme-border', bright > 0.5 ? '#e2e8f0' : '#334155');
+  }
+
   const state = {
     weekdayPreset: getPreset(STORAGE_WEEKDAY, '07:00'),
     weekendPreset: getPreset(STORAGE_WEEKEND, '09:00'),
@@ -162,6 +188,8 @@
       if (!granted && permissionHint) permissionHint.classList.remove('hidden');
     });
 
+    applyTimeOfDayTheme();
+    setInterval(applyTimeOfDayTheme, 60 * 1000);
     updateActiveCards();
     setInterval(updateActiveCards, 60 * 1000);
 

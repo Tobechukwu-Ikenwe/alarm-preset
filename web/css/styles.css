@@ -1,4 +1,5 @@
 /* Intelligent Alarm — cross-platform (Windows + Mac) */
+/* Time-of-day theme: JS sets --theme-bg-*, --theme-surface-*, --theme-text, etc. (night → day) */
 
 :root {
   --weekday: #2563eb;
@@ -11,6 +12,16 @@
   --border: #e2e8f0;
   --radius: 16px;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  /* Time-of-day defaults (mid-morning) until JS runs; values 0-255 for rgb() */
+  --theme-bg-r: 217;
+  --theme-bg-g: 235;
+  --theme-bg-b: 255;
+  --theme-surface-r: 255;
+  --theme-surface-g: 255;
+  --theme-surface-b: 255;
+  --theme-text: #1e293b;
+  --theme-text-muted: #64748b;
+  --theme-border: #e2e8f0;
 }
 
 * {
@@ -20,10 +31,11 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 100%);
-  color: var(--text);
+  background: rgb(var(--theme-bg-r), var(--theme-bg-g), var(--theme-bg-b));
+  color: var(--theme-text);
   min-height: 100vh;
   padding: 1.5rem;
+  transition: background-color 1s ease, color 0.5s ease;
 }
 
 .app {
@@ -40,28 +52,28 @@ body {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 0.25rem 0;
-  color: var(--text);
+  color: var(--theme-text);
 }
 
 .subtitle {
   margin: 0;
   font-size: 0.9375rem;
-  color: var(--text-muted);
+  color: var(--theme-text-muted);
 }
 
-.main {
+.master {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
 .card {
-  background: var(--surface);
+  background: rgb(var(--theme-surface-r), var(--theme-surface-g), var(--theme-surface-b));
   border-radius: var(--radius);
-  border: 2px solid var(--border);
+  border: 2px solid var(--theme-border);
   box-shadow: var(--shadow);
   overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  transition: border-color 0.5s ease, box-shadow 0.2s, background-color 1s ease;
 }
 
 .card-weekday .card-header {
@@ -111,7 +123,7 @@ body {
 .time-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--theme-text-muted);
 }
 
 .time-input {
@@ -120,10 +132,10 @@ body {
   padding: 0.625rem 0.75rem;
   font-size: 1.25rem;
   font-family: inherit;
-  border: 2px solid var(--border);
+  border: 2px solid var(--theme-border);
   border-radius: 10px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--theme-text);
+  background: rgb(var(--theme-surface-r), var(--theme-surface-g), var(--theme-surface-b));
 }
 
 .time-input:focus {
@@ -162,7 +174,7 @@ body {
 .permission-hint {
   text-align: center;
   font-size: 0.875rem;
-  color: var(--text-muted);
+  color: var(--theme-text-muted);
   margin: 0.5rem 0 0;
 }
 
@@ -170,23 +182,4 @@ body {
   display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #f1f5f9;
-    --text-muted: #94a3b8;
-    --surface: #1e293b;
-    --border: #334155;
-    --weekday-bg: rgba(37, 99, 235, 0.2);
-    --weekend-bg: rgba(234, 88, 12, 0.2);
-  }
-
-  body {
-    background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
-  }
-
-  .time-input {
-    background: #0f172a;
-    color: var(--text);
-    border-color: var(--border);
-  }
-}
+/* Time-of-day theme controls colors; no separate dark-mode override so day/night gradient is consistent */
