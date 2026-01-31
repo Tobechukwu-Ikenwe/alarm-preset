@@ -4,21 +4,53 @@ Set different alarm times for **weekdays** (Mon–Fri) and **weekends** (Sat–S
 
 ## How to run the code
 
-**Web app (Windows or Mac):**
+Follow the steps below to **display and run the app** on your machine.
 
-1. Go to the `web` folder in this project.
-2. Double-click **`index.html`** to open it in your browser (or right-click → Open with → Chrome, Edge, Firefox, or Safari).
-3. When the page asks for notification permission, click **Allow**.
-4. Pick a time for **Weekday** and one for **Weekend**, and turn the toggles on. The app will notify you at those times on the right days.
+---
 
-**Swift app (Mac only, for iPhone or simulator):**
+### Web app (Windows or Mac) — app opens in your browser
 
-1. Open **Xcode** on your Mac and create a new **App** project (choose iOS).
-2. Add the file **`IntelligentAlarmApp.swift`** from this project into your Xcode project (or copy its contents into your app).
-3. Make sure your app’s entry point is the `@main` struct inside that file.
-4. Click **Run** (or press ⌘R). Choose a simulator or your iPhone. When the app asks for notification permission, tap **Allow**.
+1. **Open the project folder**  
+   In File Explorer (Windows) or Finder (Mac), go to the folder where you downloaded or cloned this project.
 
-That’s it. No extra installs for the web app; for the Swift app you need Xcode (and a Mac).
+2. **Open the `web` folder**  
+   Double‑click the `web` folder to go inside it.
+
+3. **Launch the app**  
+   Double‑click **`index.html`**.  
+   Your default browser will open and **the app will be displayed** (title: “Intelligent Alarm”, two cards for Weekday and Weekend).
+
+4. **Allow notifications (optional)**  
+   When the browser asks “Allow notifications?”, click **Allow** so alarms can fire. You can still use the app if you block them.
+
+5. **Use the app**  
+   Set a time for **Weekday** and one for **Weekend**, and switch the toggles on. The highlighted card shows which alarm is active today. Alarms will trigger at the set times on the correct days.
+
+**Result:** The Intelligent Alarm interface is visible and running in your browser.
+
+---
+
+### Swift app (Mac only) — app runs on iPhone or simulator
+
+1. **Install Xcode**  
+   From the Mac App Store, install **Xcode** if you don’t have it.
+
+2. **Create a new iOS app**  
+   Open Xcode → **File** → **New** → **Project** → choose **App** (under iOS) → **Next** → name it (e.g. “AlarmPreset”) → **Next** → choose a folder → **Create**.
+
+3. **Add the app code**  
+   In the project navigator (left sidebar), delete the default Swift file Xcode created (e.g. `ContentView.swift` or `*App.swift`).  
+   Drag **`IntelligentAlarmApp.swift`** from this project into the Xcode project (into the same group as the deleted file), or copy its contents into a new file and ensure the **`@main`** struct is the app’s single entry point.
+
+4. **Run the app**  
+   At the top of Xcode, pick a **simulator** (e.g. iPhone 15) or your **connected iPhone**.  
+   Click the **Run** button (▶) or press **⌘R**.  
+   **The app will build and then display** on the simulator or device (two cards: Weekday and Weekend).
+
+5. **Allow notifications**  
+   When the app asks for notification permission, tap **Allow** so alarms work.
+
+**Result:** The Intelligent Alarm app is running and visible on the simulator or your iPhone.
 
 ## File structure
 
