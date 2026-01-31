@@ -2,7 +2,9 @@
 
 A **Clock** app that imitates the modern Clock app on Android and iOS. It includes **Alarm**, **Timer**, and **Stopwatch** in one place, with a **time-of-day gradient** that changes the background based on the current time (night, sunrise, day, dusk).
 
-![Clock app — Timer screen at night](assets/screenshot.png)
+(<img width="1613" height="836" alt="Screenshot 2026-01-30 235525" src="https://github.com/user-attachments/assets/01ee23d2-2acf-4aa0-b197-a1146dde8395" />
+)
+
 
 **What it does:**
 
