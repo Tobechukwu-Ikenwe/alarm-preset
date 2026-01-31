@@ -3,49 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Intelligent Alarm — Weekend / Weekday</title>
+  <title>Atmospheric Clock — Alarm, Timer, Stopwatch</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <div class="app">
-    <header class="header">
-      <h1>Intelligent Alarm</h1>
-      <p class="subtitle">Different times for weekdays and weekends</p>
+    <!-- Current time at top center (matches Swift CurrentTimeHeader) -->
+    <header class="current-time-header" aria-live="polite">
+      <time id="current-time" class="current-time" datetime="">0:00 AM</time>
     </header>
 
-    <main class="master">
-      <section class="card card-weekday" id="card-weekday" aria-label="Weekday alarm">
-        <div class="card-header">
-          <span class="card-icon" aria-hidden="true">💼</span>
-          <h2>Weekday (Mon–Fri)</h2>
-        </div>
-        <div class="card-body">
-          <label class="time-label" for="time-weekday">Time</label>
-          <input type="time" id="time-weekday" class="time-input" value="07:00" aria-label="Weekday alarm time">
+    <!-- Tab content panels -->
+    <main class="tab-content">
+      <!-- Alarm tab: single time + toggle (matches Swift AlarmTab) -->
+      <section id="panel-alarm" class="tab-panel" role="tabpanel" aria-label="Alarm">
+        <div class="glass card">
+          <label class="time-label" for="time-alarm">Time</label>
+          <input type="time" id="time-alarm" class="time-input" value="07:00" aria-label="Alarm time">
           <label class="toggle-label">
-            <input type="checkbox" id="enabled-weekday" class="toggle" checked aria-label="Enable weekday alarm">
-            <span class="toggle-text">Enabled</span>
+            <input type="checkbox" id="enabled-alarm" class="toggle" aria-label="Alarm on">
+            <span class="toggle-text">On</span>
           </label>
+        </div>
+        <p class="permission-hint hidden" id="permission-hint">Enable notifications for alarms.</p>
+      </section>
+
+      <!-- Timer tab: circular countdown ring + stepper + buttons (matches Swift TimerTab) -->
+      <section id="panel-timer" class="tab-panel hidden" role="tabpanel" aria-label="Timer">
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" viewBox="0 0 220 220" aria-hidden="true">
+            <circle class="timer-ring-bg" cx="110" cy="110" r="100" fill="none" stroke-width="12" />
+            <circle id="timer-ring-progress" class="timer-ring-progress" cx="110" cy="110" r="100" fill="none" stroke-width="12" stroke-dasharray="628" stroke-dashoffset="0" />
+          </svg>
+          <span id="timer-display" class="timer-display">5:00</span>
+        </div>
+        <div class="glass timer-stepper-wrap" id="timer-stepper-wrap">
+          <label>Minutes: <span id="timer-minutes">5</span></label>
+          <div class="stepper-buttons">
+            <button type="button" id="timer-minus" aria-label="Decrease minutes">−</button>
+            <button type="button" id="timer-plus" aria-label="Increase minutes">+</button>
+          </div>
+        </div>
+        <div class="timer-buttons">
+          <button type="button" id="timer-start" class="btn btn-primary glass">Start</button>
+          <button type="button" id="timer-pause" class="btn glass hidden">Pause</button>
+          <button type="button" id="timer-reset" class="btn glass hidden">Reset</button>
         </div>
       </section>
 
-      <section class="card card-weekend" id="card-weekend" aria-label="Weekend alarm">
-        <div class="card-header">
-          <span class="card-icon" aria-hidden="true">🛏</span>
-          <h2>Weekend (Sat–Sun)</h2>
+      <!-- Stopwatch tab: lap timer with milliseconds (matches Swift StopwatchTab) -->
+      <section id="panel-stopwatch" class="tab-panel hidden" role="tabpanel" aria-label="Stopwatch">
+        <div id="stopwatch-display" class="stopwatch-display">00:00.000</div>
+        <div class="stopwatch-buttons">
+          <button type="button" id="stopwatch-start" class="btn btn-primary glass">Start</button>
+          <button type="button" id="stopwatch-lap" class="btn glass hidden">Lap</button>
+          <button type="button" id="stopwatch-stop" class="btn btn-primary glass hidden">Stop</button>
         </div>
-        <div class="card-body">
-          <label class="time-label" for="time-weekend">Time</label>
-          <input type="time" id="time-weekend" class="time-input" value="09:00" aria-label="Weekend alarm time">
-          <label class="toggle-label">
-            <input type="checkbox" id="enabled-weekend" class="toggle" checked aria-label="Enable weekend alarm">
-            <span class="toggle-text">Enabled</span>
-          </label>
-        </div>
+        <ul id="stopwatch-laps" class="stopwatch-laps" aria-label="Lap times"></ul>
       </section>
-
-      <p class="permission-hint hidden" id="permission-hint">Enable notifications in your browser to get alarms.</p>
     </main>
+
+    <!-- Tab bar at bottom (matches Swift TabView) -->
+    <nav class="tab-bar" role="tablist">
+      <button type="button" class="tab-btn active" data-tab="alarm" role="tab" aria-selected="true" aria-controls="panel-alarm">
+        <span class="tab-icon" aria-hidden="true">⏰</span>
+        <span>Alarm</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="timer" role="tab" aria-selected="false" aria-controls="panel-timer">
+        <span class="tab-icon" aria-hidden="true">⏱</span>
+        <span>Timer</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="stopwatch" role="tab" aria-selected="false" aria-controls="panel-stopwatch">
+        <span class="tab-icon" aria-hidden="true">⏲</span>
+        <span>Stopwatch</span>
+      </button>
+    </nav>
   </div>
   <script src="js/app.js"></script>
 </body>
