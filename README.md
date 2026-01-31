@@ -4,53 +4,65 @@ Set different alarm times for **weekdays** (Mon–Fri) and **weekends** (Sat–S
 
 ## How to run the code
 
-Follow the steps below to **display and run the app** on your machine.
+Do these steps **in order** to see the app and interact with it.
 
 ---
 
-### Web app (Windows or Mac) — app opens in your browser
+### Web app (Windows or Mac)
 
-1. **Open the project folder**  
-   In File Explorer (Windows) or Finder (Mac), go to the folder where you downloaded or cloned this project.
+**Step 1 — Start a local server (so the app loads correctly)**  
+Opening `index.html` by double‑clicking often fails (wrong program, or the app won’t work properly). Use a local server instead.
 
-2. **Open the `web` folder**  
-   Double‑click the `web` folder to go inside it.
+- **If you have Node.js:**  
+  Open a terminal (Command Prompt, PowerShell, or Terminal) and go to the **project folder** (the one that contains the `web` folder). Run:
+  ```bash
+  npx serve web
+  ```
+  Note the URL it prints (e.g. `http://localhost:3000`).
 
-3. **Launch the app**  
-   Double‑click **`index.html`**.  
-   Your default browser will open and **the app will be displayed** (title: “Intelligent Alarm”, two cards for Weekday and Weekend).
+- **If you don’t have Node.js:**  
+  Open your browser (Chrome, Edge, Firefox, or Safari). Press **Ctrl+O** (Windows) or **⌘+O** (Mac) → go to the project folder → open the **`web`** folder → select **`index.html`** → click **Open**.
 
-4. **Allow notifications (optional)**  
-   When the browser asks “Allow notifications?”, click **Allow** so alarms can fire. You can still use the app if you block them.
+**Step 2 — Open the app in your browser**  
+- If you used `npx serve web`: open a browser and go to the URL from Step 1 (e.g. **http://localhost:3000**).  
+- If you used File → Open: the app should already be open in the tab you used.
 
-5. **Use the app**  
-   Set a time for **Weekday** and one for **Weekend**, and switch the toggles on. The highlighted card shows which alarm is active today. Alarms will trigger at the set times on the correct days.
+**Step 3 — What you should see**  
+You should see the **Intelligent Alarm** page: a title “Intelligent Alarm”, then two large cards:
 
-**Result:** The Intelligent Alarm interface is visible and running in your browser.
+- **Weekday (Mon–Fri)** — blue label, with a time box and an “Enabled” toggle.
+- **Weekend (Sat–Sun)** — orange label, with a time box and an “Enabled” toggle.
+
+One of the two cards will be **highlighted** (stronger border/background): the weekday card on Mon–Fri, the weekend card on Sat–Sun.
+
+**Step 4 — Interact with the app**  
+- **Set alarm times:** Click the **time box** on each card (e.g. “07:00”) and choose an hour and minute.  
+- **Turn alarms on/off:** Use the **Enabled** toggle on each card (on = alarm will fire on those days).  
+- When the browser asks **“Allow notifications?”**, click **Allow** so you get alarm notifications at the set times.
+
+After that, the app is running: it will show notifications at the times you set, on weekdays or weekends depending on which card you configured.
 
 ---
 
-### Swift app (Mac only) — app runs on iPhone or simulator
+### Swift app (Mac only)
 
-1. **Install Xcode**  
-   From the Mac App Store, install **Xcode** if you don’t have it.
+**Step 1 — Install Xcode**  
+Install **Xcode** from the Mac App Store if it’s not already installed.
 
-2. **Create a new iOS app**  
-   Open Xcode → **File** → **New** → **Project** → choose **App** (under iOS) → **Next** → name it (e.g. “AlarmPreset”) → **Next** → choose a folder → **Create**.
+**Step 2 — Create a new iOS app**  
+Open Xcode → **File** → **New** → **Project** → select **App** (under iOS) → **Next** → enter a name (e.g. “AlarmPreset”) → **Next** → choose a folder → **Create**.
 
-3. **Add the app code**  
-   In the project navigator (left sidebar), delete the default Swift file Xcode created (e.g. `ContentView.swift` or `*App.swift`).  
-   Drag **`IntelligentAlarmApp.swift`** from this project into the Xcode project (into the same group as the deleted file), or copy its contents into a new file and ensure the **`@main`** struct is the app’s single entry point.
+**Step 3 — Use this project’s code**  
+In the left sidebar (project navigator), remove the default Swift file Xcode added. Drag **`IntelligentAlarmApp.swift`** from this repo into that same spot in the Xcode project (or create a new file, paste its contents, and keep the **`@main`** struct as the only app entry point).
 
-4. **Run the app**  
-   At the top of Xcode, pick a **simulator** (e.g. iPhone 15) or your **connected iPhone**.  
-   Click the **Run** button (▶) or press **⌘R**.  
-   **The app will build and then display** on the simulator or device (two cards: Weekday and Weekend).
+**Step 4 — Run the app**  
+At the top of Xcode, select a **simulator** (e.g. iPhone 15) or your **connected iPhone**. Click the **Run** button (▶) or press **⌘R**.
 
-5. **Allow notifications**  
-   When the app asks for notification permission, tap **Allow** so alarms work.
+**Step 5 — What you should see**  
+The app opens on the simulator or device: **Intelligent Alarm** with two cards (Weekday and Weekend), each with a time picker and an Enabled switch. One card is highlighted based on whether today is a weekday or weekend.
 
-**Result:** The Intelligent Alarm app is running and visible on the simulator or your iPhone.
+**Step 6 — Interact with the app**  
+Use the **time picker** on each card to set the alarm time. Use the **Enabled** switch to turn each alarm on or off. When the app asks for notification permission, tap **Allow**.
 
 ## File structure
 
