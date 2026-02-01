@@ -20,28 +20,39 @@ final class ThemeManager: ObservableObject {
         return LinearGradient(colors: [start, end], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
+    /// Realistic sky gradients: how the sky actually looks at these times (no pink/blue fantasy).
     private func colorsForHour(_ hour: Double) -> (Color, Color) {
-        if hour >= 22 || hour < 5 {
-            return (Color.black, Color.deepNavy)
+        if hour >= 20 || hour < 6 {
+            return (Color.nightSkyTop, Color.nightSkyBottom)
         }
-        if hour >= 5 && hour < 9 {
-            return (Color.softPink, Color(red: 0.68, green: 0.85, blue: 1))
+        if hour >= 6 && hour < 9 {
+            return (Color.sunriseHorizon, Color.sunriseSky)
         }
         if hour >= 9 && hour < 17 {
-            return (Color.skyBlue, Color.white)
+            return (Color.daySkyTop, Color.daySkyBottom)
         }
-        if hour >= 17 && hour < 22 {
-            return (Color.twilightPurple, Color(red: 1, green: 0.5, blue: 0))
+        if hour >= 17 && hour < 20 {
+            return (Color.duskHorizon, Color.duskSky)
         }
-        return (Color.black, Color.deepNavy)
+        return (Color.nightSkyTop, Color.nightSkyBottom)
+    }
+
+    /// Moon visible at night (20–6), sun visible rest of day.
+    func isNight(for date: Date) -> Bool {
+        let hour = Double(Calendar.current.component(.hour, from: date)) + Double(Calendar.current.component(.minute, from: date)) / 60
+        return hour >= 20 || hour < 6
     }
 }
 
 extension Color {
-    static let deepNavy = Color(red: 0, green: 0, blue: 0.2)
-    static let softPink = Color(red: 1, green: 0.71, blue: 0.76)
-    static let skyBlue = Color(red: 0.53, green: 0.81, blue: 0.98)
-    static let twilightPurple = Color(red: 0.29, green: 0, blue: 0.51)
+    static let nightSkyTop = Color(red: 0.04, green: 0.055, blue: 0.1)
+    static let nightSkyBottom = Color(red: 0.1, green: 0.13, blue: 0.21)
+    static let sunriseHorizon = Color(red: 0.91, green: 0.66, blue: 0.22)
+    static let sunriseSky = Color(red: 0.53, green: 0.81, blue: 0.92)
+    static let daySkyTop = Color(red: 0.36, green: 0.64, blue: 0.96)
+    static let daySkyBottom = Color(red: 0.7, green: 0.88, blue: 1)
+    static let duskHorizon = Color(red: 1, green: 0.49, blue: 0.37)
+    static let duskSky = Color(red: 0.17, green: 0.24, blue: 0.31)
 }
 
 // MARK: - Alarm (UNCalendarNotificationTrigger)
@@ -377,6 +388,7 @@ struct ContentView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 60)) { context in
             let gradient = theme.gradient(for: context.date)
+            let showMoon = theme.isNight(for: context.date)
             TabView {
                 TabContent(date: context.date) { AlarmTab() }
                     .tabItem { Label("Alarm", systemImage: "alarm.fill") }
@@ -386,9 +398,28 @@ struct ContentView: View {
                     .tabItem { Label("Stopwatch", systemImage: "stopwatch.fill") }
             }
             .background {
-                gradient
-                    .ignoresSafeArea()
-                    .animation(.easeInOut(duration: 2), value: context.date.timeIntervalSince1970.rounded(.down) / 60)
+                ZStack {
+                    gradient
+                        .ignoresSafeArea()
+                        .animation(.easeInOut(duration: 2), value: context.date.timeIntervalSince1970.rounded(.down) / 60)
+                    if showMoon {
+                        Circle()
+                            .fill(
+                                RadialGradient(colors: [Color.white.opacity(0.12), Color.white.opacity(0.02), Color.clear], center: .center, startRadius: 0, endRadius: 120)
+                            )
+                            .frame(width: 240, height: 240)
+                            .offset(x: 80, y: -180)
+                            .blur(radius: 2)
+                    } else {
+                        Circle()
+                            .fill(
+                                RadialGradient(colors: [Color(red: 1, green: 0.98, blue: 0.9).opacity(0.15), Color(red: 1, green: 0.95, blue: 0.8).opacity(0.05), Color.clear], center: .center, startRadius: 0, endRadius: 100)
+                            )
+                            .frame(width: 220, height: 220)
+                            .offset(x: 70, y: -200)
+                            .blur(radius: 4)
+                    }
+                }
             }
         }
     }

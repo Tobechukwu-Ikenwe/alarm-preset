@@ -317,18 +317,19 @@
   function applyTimeOfDayTheme() {
     var hour = hourFraction(new Date());
     var r, g, b, r2, g2, b2;
-    if (hour >= 22 || hour < 5) {
-      r = 0; g = 0; b = 51;
-      r2 = 20; g2 = 26; b2 = 46;
-    } else if (hour >= 5 && hour < 9) {
-      r = 255; g = 182; b = 193;
-      r2 = 173; g2 = 216; b2 = 255;
+    var isNight = hour >= 20 || hour < 6;
+    if (isNight) {
+      r = 10; g = 14; b = 26;
+      r2 = 26; g2 = 34; b2 = 53;
+    } else if (hour >= 6 && hour < 9) {
+      r = 232; g = 168; b = 56;
+      r2 = 135; g2 = 206; b2 = 235;
     } else if (hour >= 9 && hour < 17) {
-      r = 135; g = 206; b = 250;
-      r2 = 255; g2 = 255; b2 = 255;
+      r = 91; g = 163; b = 246;
+      r2 = 179; g2 = 224; b2 = 255;
     } else {
-      r = 75; g = 0; b = 130;
-      r2 = 255; g2 = 128; b2 = 0;
+      r = 255; g = 126; b = 95;
+      r2 = 44; g2 = 62; b2 = 80;
     }
     document.documentElement.style.setProperty('--theme-bg-r', r);
     document.documentElement.style.setProperty('--theme-bg-g', g);
@@ -336,10 +337,15 @@
     document.documentElement.style.setProperty('--theme-surface-r', r2);
     document.documentElement.style.setProperty('--theme-surface-g', g2);
     document.documentElement.style.setProperty('--theme-surface-b', b2);
-    var bright = (hour >= 6 && hour < 18);
+    var bright = hour >= 6 && hour < 18;
     document.documentElement.style.setProperty('--theme-text', bright ? '#1e293b' : '#f1f5f9');
     document.documentElement.style.setProperty('--theme-text-muted', bright ? '#64748b' : '#94a3b8');
     document.documentElement.style.setProperty('--theme-border', bright ? '#e2e8f0' : '#334155');
+    var orb = document.getElementById('sky-orb');
+    if (orb) {
+      orb.classList.remove('sun', 'moon');
+      orb.classList.add(isNight ? 'moon' : 'sun');
+    }
   }
 
   applyTimeOfDayTheme();
